@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mobile POS System</title>
+  <style>
+    /* Base resets & styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* App Header */
+    header {
+      background-color: #1e293b;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      color: #10b981;
+    }
+
+    .cart-toggle-btn {
+      background-color: #334155;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .badge {
+      background-color: #10b981;
+      color: #0f172a;
+      font-weight: bold;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 0.75rem;
+      margin-left: 4px;
+    }
+
+    /* Main Container Layout */
+    .app-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Product Section */
+    .catalog-section {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #10b981;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .product-card {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.1s ease;
+    }
+
+    .product-card:active {
+      transform: scale(0.97);
+    }
+
+    .product-category {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .product-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 12px;
+    }
+
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .product-price {
+      color: #10b981;
+      font-weight: bold;
+    }
+
+    .add-icon {
+      background-color: #334155;
+      color: #10b981;
+      border-radius: 4px;
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    /* Drawer / Sidebar Cart */
+    .cart-drawer {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      background-color: #1e293b;
+      border-left: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.2s ease-in-out;
+      z-index: 10;
+    }
+
+    .cart-drawer.open {
+      transform: translateX(0);
+    }
+
+    .cart-header {
+      padding: 16px;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .cart-items {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
+
+    .empty-cart-msg {
+      text-align: center;
+      color: #64748b;
+      margin-top: 40px;
+      font-size: 0.9rem;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #0f172a;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .cart-item-info {
+      flex: 1;
+    }
+
+    .cart-item-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .cart-item-subtotal {
+      font-size: 0.8rem;
+      color: #10b981;
+    }
+
+    .cart-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .qty-btn {
+      background-color: #334155;
+      color: #fff;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .remove-btn {
+      background-color: #ef4444;
+      color: #fff;
+      border: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+
+    /* Checkout Area */
+    .checkout-panel {
+      padding: 16px;
+      background-color: #0f172a;
+      border-top: 1px solid #334155;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+
+    .summary-line.total {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #fff;
+      border-top: 1px solid #334155;
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+
+    .payment-methods {
+      display: flex;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .pay-btn-option {
+      flex: 1;
+      padding: 8px;
+      background-color: transparent;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .pay-btn-option.selected {
+      border-color: #10b981;
+      color: #10b981;
+      background-color: rgba(16, 185, 129, 0.1);
+    }
+
+    .complete-sale-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #10b981;
+      color: #0f172a;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .complete-sale-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Desktop View Adjustments */
+    @media (min-width: 640px) {
+      .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .cart-drawer {
+        position: relative;
+        width: 320px;
+        transform: translateX(0);
+      }
+
+      .cart-toggle-btn, .close-btn {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <h1>HTML POS Mobile</h1>
+    <button class="cart-toggle-btn" onclick="toggleCart()">
+      Cart <span class="badge" id="cartBadge">0</span>
+    </button>
+  </header>
+
+  <!-- App Body -->
+  <div class="app-container">
+    
+    <!-- Left Catalog View -->
+    <section class="catalog-section">
+      <input 
+        type="text" 
+        class="search-input" 
+        id="searchInput" 
+        placeholder="Search items..." 
+        oninput="renderProducts()" 
+      />
+      <div class="product-grid" id="productGrid"></div>
+    </section>
+
+    <!-- Right Drawer Cart View -->
+    <aside class="cart-drawer" id="cartDrawer">
+      <div class="cart-header">
+        <h2>Current Order</h2>
+        <button class="close-btn" onclick="toggleCart()">Close ✕</button>
+      </div>
+
+      <div class="cart-items" id="cartItemsContainer">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="checkout-panel">
+        <div class="summary-line">
+          <span>Subtotal</span>
+          <span id="subtotalVal">$0.00</span>
+        </div>
+        <div class="summary-line">
+          <span>Tax (8%)</span>
+          <span id="taxVal">$0.00</span>
+        </div>
+        <div class="summary-line total">
+          <span>Total</span>
+          <span id="totalVal" style="color: #10b981;">$0.00</span>
+        </div>
+
+        <div class="payment-methods">
+          <button class="pay-btn-option selected" id="payCash" onclick="setPaymentMethod('Cash')">Cash</button>
+          <button class="pay-btn-option" id="payCard" onclick="setPaymentMethod('Card')">Card</button>
+        </div>
+
+        <button class="complete-sale-btn" id="checkoutBtn" disabled onclick="completeSale()">
+          Complete Sale
+        </button>
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    // Initial Products Data
+    const PRODUCTS = [
+      { id: 1, name: "Espresso", price: 3.50, category: "Beverages" },
+      { id: 2, name: "Iced Latte", price: 4.75, category: "Beverages" },
+      { id: 3, name: "Croissant", price: 3.25, category: "Bakery" },
+      { id: 4, name: "Avocado Toast", price: 8.50, category: "Food" },
+      { id: 5, name: "Matcha Latte", price: 5.25, category: "Beverages" },
+      { id: 6, name: "Blueberry Muffin", price: 3.75, category: "Bakery" }
+    ];
+
+    let cart = [];
+    let paymentMethod = "Cash";
+
+    // Toggle Mobile Cart View Drawer
+    function toggleCart() {
+      document.getElementById('cartDrawer').classList.toggle('open');
+    }
+
+    // Set Active Payment Method
+    function setPaymentMethod(method) {
+      paymentMethod = method;
+      document.getElementById('payCash').classList.toggle('selected', method === 'Cash');
+      document.getElementById('payCard').classList.toggle('selected', method === 'Card');
+    }
+
+    // Render Product Catalog
+    function renderProducts() {
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      const grid = document.getElementById('productGrid');
+      grid.innerHTML = '';
+
+      const filtered = PRODUCTS.filter(p => p.name.toLowerCase().includes(searchQuery));
+
+      filtered.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.onclick = () => addToCart(p);
+        card.innerHTML = `
+          <div>
+            <span class="product-category">${p.category}</span>
+            <div class="product-name">${p.name}</div>
+          </div>
+          <div class="product-footer">
+            <span class="product-price">$${p.price.toFixed(2)}</span>
+            <span class="add-icon">+</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // Add item to cart
+    function addToCart(product) {
+      const existing = cart.find(item => item.id === product.id);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({ ...product, qty: 1 });
+      }
+      renderCart();
+    }
+
+    // Change Qty (+1 / -1)
+    function updateQty(id, delta) {
+      const item = cart.find(i => i.id === id);
+      if (item) {
+        item.qty += delta;
+        if (item.qty <= 0) {
+          cart = cart.filter(i => i.id !== id);
+        }
+      }
+      renderCart();
+    }
+
+    // Remove Item Completely
+    function removeItem(id) {
+      cart = cart.filter(i => i.id !== id);
+      renderCart();
+    }
+
+    // Render Cart & Update Totals
+    function renderCart() {
+      const container = document.getElementById('cartItemsContainer');
+      container.innerHTML = '';
+
+      if (cart.length === 0) {
+        container.innerHTML = `<div class="empty-cart-msg">Cart is empty</div>`;
+      } else {
+        cart.forEach(item => {
+          const itemEl = document.createElement('div');
+          itemEl.className = 'cart-item';
+          itemEl.innerHTML = `
+            <div class="cart-item-info">
+              <div class="cart-item-title">${item.name}</div>
+              <div class="cart-item-subtotal">$${(item.price * item.qty).toFixed(2)}</div>
+            </div>
+            <div class="cart-controls">
+              <button class="qty-btn" onclick="updateQty(${item.id}, -1)">-</button>
+              <span>${item.qty}</span>
+              <button class="qty-btn" onclick="updateQty(${item.id}, 1)">+</button>
+              <button class="remove-btn" onclick="removeItem(${item.id})">✕</button>
+            </div>
+          `;
+          container.appendChild(itemEl);
+        });
+      }
+
+      // Calculations
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const tax = subtotal * 0.08;
+      const total = subtotal + tax;
+
+      const totalItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
+
+      // UI Updates
+      document.getElementById('subtotalVal').innerText = `$${subtotal.toFixed(2)}`;
+      document.getElementById('taxVal').innerText = `$${tax.toFixed(2)}`;
+      document.getElementById('totalVal').innerText = `$${total.toFixed(2)}`;
+      document.getElementById('cartBadge').innerText = totalItemsCount;
+
+      const checkoutBtn = document.getElementById('checkoutBtn');
+      checkoutBtn.disabled = cart.length === 0;
+      checkoutBtn.innerText = cart.length === 0 ? 'Complete Sale' : `Pay $${total.toFixed(2)}`;
+    }
+
+    // Process Complete Sale
+    function completeSale() {
+      const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+      const total = subtotal * 1.08;
+      
+      alert(`Order Processed!\nPayment Method: ${paymentMethod}\nTotal Paid: $${total.toFixed(2)}`);
+      
+      // Reset cart
+      cart = [];
+      renderCart();
+      
+      // Close drawer on mobile if open
+      document.getElementById('cartDrawer').classList.remove('open');
+    }
+
+    // Initial Launch Rendering
+    renderProducts();
+    renderCart();
+  </script>
+</body>
+</html>
